@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Foto | Beranda</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f7f6; }
+        .navbar { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .card-img-top { height: 250px; object-fit: cover; border-radius: 8px 8px 0 0; }
+        .card { border: none; border-radius: 12px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url('/foto') }}">SNAPGALLERY</a>
+            <div class="d-flex align-items-center">
+                <a href="{{ url('/foto/create') }}" class="btn btn-primary btn-sm me-3"><i class="bi bi-plus-lg"></i> Unggah Foto</a>
+                <a href="{{ url('/album') }}" class="btn btn-outline-secondary btn-sm me-3">Album</a>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-light btn-sm text-danger">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            @forelse($fotos as $foto)
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <a href="{{ route('foto.show', $foto->foto_id) }}">
+                            <img src="{{ asset('storage/' . $foto->lokasi_file) }}" class="card-img-top" alt="{{ $foto->judul_foto }}">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-dark">{{ $foto->judul_foto }}</h5>
+                            <p class="card-text text-muted small">
+                                {{ \Illuminate\Support\Str::limit($foto->deskripsi_foto, 100) }}
+                            </p>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-secondary"><i class="bi bi-person"></i> {{ $foto->user->nama_lengkap }}</span>
+                                <div>
+                                    <form action="{{ route('foto.like', $foto->foto_id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                            <i class="bi bi-heart"></i> {{ $foto->likes->count() }}
+                                        </button>
+                                    </form>
+                                    
+                                    <a href="{{ route('foto.show', $foto->foto_id) }}" class="btn btn-sm btn-outline-primary border-0">
+                                        <i class="bi bi-chat"></i> {{ $foto->komentars->count() }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">Belum ada foto yang diunggah.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</body>
+</html>
