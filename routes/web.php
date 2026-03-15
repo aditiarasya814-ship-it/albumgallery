@@ -7,7 +7,7 @@ use App\Http\Controllers\InteraksiController;
 use App\Http\Controllers\AuthController;
 
 // Route Halaman Depan (Landing Page)
-Route::get('/', [FotoController::class, 'index']);
+
 
 // Route untuk Autentikasi (Login, Register, Logout)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -18,7 +18,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Route yang hanya bisa diakses setelah Login
 Route::middleware(['auth'])->group(function () {
-    
+    Route::get('/', [FotoController::class, 'index']);
     // Dashboard / Home (bisa diarahkan ke galeri)
     Route::get('/home', [FotoController::class, 'index'])->name('home');
 

@@ -10,27 +10,20 @@ use Illuminate\Support\Facades\Auth;
 
 class FotoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
+        // Gunakan eager loading 'user' agar tidak error 'column not found users.id'
         $fotos = Foto::with('user')->latest()->get();
         return view('foto.index', compact('fotos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $albums = Album::where('user_id', Auth::id())->get();
+        $albums = Album::all();
+
         return view('foto.create', compact('albums'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -40,7 +33,6 @@ class FotoController extends Controller
             'album_id' => 'required'
         ]);
 
-        // Simpan file ke folder storage/app/public/fotos
         $path = $request->file('lokasi_file')->store('fotos', 'public');
 
         Foto::create([
@@ -55,43 +47,56 @@ class FotoController extends Controller
         return redirect()->route('foto.index')->with('success', 'Foto berhasil diunggah!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        // Mengambil foto beserta relasi user dan komentar (beserta user komentarnya)
         $foto = Foto::with(['user', 'komentars.user'])->findOrFail($id);
         return view('foto.show', compact('foto'));
     }
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Foto $foto)
+
+    public function edit($id)
     {
-        //
+        $foto = Foto::findOrFail($id);
+
+        if (auth()->user()->role !== 'admin' && $foto->user_id !== auth()->id()) {
+            return redirect('/foto')->with('error', 'Akses dilarang!');
+        }
+        $albums = Album::all();
+
+        return view('foto.edit', compact('foto', 'albums'));
+    }
+    public function update(Request $request, $id)
+    {
+        $foto = Foto::findOrFail($id);
+
+        $request->validate([
+            'judul_foto' => 'required',
+            'deskripsi_foto' => 'required',
+            'album_id' => 'required'
+        ]);
+
+        $foto->update([
+            'judul_foto' => $request->judul_foto,
+            'deskripsi_foto' => $request->deskripsi_foto,
+            'album_id' => $request->album_id,
+        ]);
+
+        return redirect()->route('foto.index')->with('success', 'Foto berhasil diperbarui!');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Foto $foto)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
+    // HANYA SATU FUNGSI DESTROY
     public function destroy($id)
     {
         $foto = Foto::findOrFail($id);
-        if ($foto->user_id == Auth::id()) {
-            Storage::disk('public')->delete($foto->lokasi_file);
-            $foto->delete();
-            return back()->with('success', 'Foto dihapus!');
+
+        // Cek izin
+        if (auth()->user()->role !== 'admin' && $foto->user_id !== auth()->id()) {
+            return back()->with('error', 'Akses ditolak!');
         }
 
-        return back()->with('error', 'Tidak diizinkan!');
+        // Hapus file fisik
+        Storage::disk('public')->delete($foto->lokasi_file);
+
+        $foto->delete();
+        return back()->with('success', 'Foto berhasil dihapus!');
     }
 }

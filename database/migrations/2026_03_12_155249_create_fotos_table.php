@@ -10,15 +10,16 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('fotos', function (Blueprint $table) {
-            $table->id('foto_id');
-            $table->string('judul_foto');
-            $table->text('deskripsi_foto');
-            $table->date('tanggal_unggah');
-            $table->string('lokasi_file');
-            $table->foreignId('album_id')->constrained('albums', 'album_id')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
+        Schema::create('fotos', function (Blueprint $blueprint) {
+            $blueprint->id('foto_id');
+            $blueprint->string('judul_foto');
+            $blueprint->text('deskripsi_foto');
+            $blueprint->date('tanggal_unggah');
+            $blueprint->string('lokasi_file');
+            $blueprint->foreignId('album_id')->constrained('albums', 'album_id')->onDelete('cascade');
+            $blueprint->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+
+            $blueprint->timestamps();
         });
     }
 

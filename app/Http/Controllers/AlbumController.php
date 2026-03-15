@@ -8,19 +8,33 @@ use Illuminate\Support\Facades\Auth;
 
 class AlbumController extends Controller
 {
+    // Fungsi pembantu untuk cek Admin
+    private function isAdmin() {
+        if (auth()->user()->role !== 'admin') {
+            return false;
+        }
+        return true;
+    }
+
     public function index()
     {
-                $albums = Album::where('user_id', Auth::id())->withCount('fotos')->get();
+        if (!$this->isAdmin()) return redirect('/foto')->with('error', 'Akses khusus Admin!');
+        
+        // Admin melihat semua album
+        $albums = Album::withCount('fotos')->get();
         return view('album.index', compact('albums'));
     }
 
     public function create()
     {
+        if (!$this->isAdmin()) return redirect('/foto')->with('error', 'Akses khusus Admin!');
         return view('album.create');
     }
 
     public function store(Request $request)
     {
+        if (!$this->isAdmin()) return redirect('/foto')->with('error', 'Akses khusus Admin!');
+
         $request->validate([
             'nama_album' => 'required|string|max:255',
             'deskripsi' => 'required|string',
@@ -38,11 +52,11 @@ class AlbumController extends Controller
 
     public function destroy($id)
     {
+        if (!$this->isAdmin()) return redirect('/foto')->with('error', 'Akses khusus Admin!');
+
         $album = Album::findOrFail($id);
-        if ($album->user_id == Auth::id()) {
-            $album->delete();
-            return back()->with('success', 'Album berhasil dihapus!');
-        }
-        return back()->with('error', 'Aksi tidak diizinkan.');
+        $album->delete();
+        
+        return back()->with('success', 'Album berhasil dihapus!');
     }
 }

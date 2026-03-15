@@ -10,13 +10,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('albums', function (Blueprint $table) {
-            $table->id('album_id');
-            $table->string('nama_album');
-            $table->text('deskripsi');
-            $table->date('tanggal_dibuat');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
+        Schema::create('albums', function (Blueprint $blueprint) {
+            $blueprint->id('album_id');
+            $blueprint->string('nama_album');
+            $blueprint->text('deskripsi');
+            $blueprint->date('tanggal_dibuat');
+            $blueprint->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+
+            $blueprint->timestamps();
         });
     }
 
