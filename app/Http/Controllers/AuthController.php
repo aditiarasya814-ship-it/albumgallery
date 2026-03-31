@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -8,12 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // Menampilkan halaman login
     public function showLogin() {
         return view('auth.login');
     }
 
-    // Proses Login
     public function postLogin(Request $request) {
         $credentials = $request->validate([
             'username' => 'required',
@@ -21,19 +20,24 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            // Penting: Regenerasi session untuk keamanan
             $request->session()->regenerate();
+
+            // Cek role untuk mengarahkan ke dashboard yang sesuai (Opsional)
+            if (Auth::user()->role === 'admin') {
+                return redirect()->intended('/admin/dashboard');
+            }
+
             return redirect()->intended('/foto');
         }
 
         return back()->with('error', 'Username atau password salah!');
     }
 
-    // Menampilkan halaman register
     public function showRegister() {
         return view('auth.register');
     }
 
-    // Proses Register
     public function postRegister(Request $request) {
         $request->validate([
             'username' => 'required|unique:users',
@@ -49,14 +53,19 @@ class AuthController extends Controller
             'email' => $request->email,
             'nama_lengkap' => $request->nama_lengkap,
             'alamat' => $request->alamat,
+            'role' => 'user', // Memastikan pendaftar baru adalah user biasa
         ]);
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil, silakan login!');
     }
 
-    // Logout
-    public function logout() {
+    public function logout(Request $request) {
         Auth::logout();
+        
+        // Bersihkan session secara total
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }
